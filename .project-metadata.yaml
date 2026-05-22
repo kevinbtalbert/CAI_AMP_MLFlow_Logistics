@@ -27,12 +27,12 @@ environment_variables:
     description: "Comma-separated list of allowed Host headers for the MLflow server. * is an acceptable wildcard."
     prompt_user: false
   CML_MODEL_PREDICT_URL:
-    default: "tbd"
-    description: "Full predict URL of the deployed CML Model (used by the Streamlit demo app)."
+    default: ""
+    description: "Full predict URL of the deployed CML Model. Set this on the Classifier Demo Application after deploying the model."
     prompt_user: false
   CML_MODEL_ACCESS_KEY:
-    default: "tbd"
-    description: "Access key for the deployed CML Model (used by the Streamlit demo app)."
+    default: ""
+    description: "Access key for the deployed CML Model. Set this on the Classifier Demo Application after deploying the model."
     prompt_user: false
 
 runtimes:
