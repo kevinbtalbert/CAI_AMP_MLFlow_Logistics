@@ -38,8 +38,8 @@ tasks:
     entity_label: install_dependencies
     script: cml/install_dependencies.py
     arguments: None
-    cpu: 1
-    memory: 2
+    cpu: 2
+    memory: 8
     short_summary: Create a job to install project dependencies.
     environment:
       TASK_TYPE: CREATE/RUN_JOB
