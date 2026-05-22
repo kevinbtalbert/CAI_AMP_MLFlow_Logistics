@@ -51,12 +51,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--n-neighbors", type=int, default=5)
 args, _ = parser.parse_known_args()
 
+mlflow.set_experiment("kneighbors-classification")
+
+# Automatically capture hyperparameters and training metrics from the sklearn pipeline.
+# log_models=False keeps our explicit log_model() call below in control of registration.
+mlflow.sklearn.autolog(log_models=False)
 
 with mlflow.start_run():
-
-    # Log hyperparameters for the training run
-
-    mlflow.log_param("n_neighbors", args.n_neighbors)
 
     # Define and train a ML pipeline
 
@@ -66,13 +67,8 @@ with mlflow.start_run():
     pipe = make_pipeline(scaler, kn)
     pipe.fit(X_train, y_train)
 
-    # Log the model performance metrics, and save the serialized model
+    # Log test-set accuracy explicitly — autolog only captures training metrics.
+    mlflow.log_metric("test_accuracy", pipe.score(X_test, y_test))
 
-    mlflow.log_metrics(
-        {
-            "train_accuracy": pipe.score(X_train, y_train),
-            "test_accuracy": pipe.score(X_test, y_test),
-        }
-    )
-
-    mlflow.sklearn.log_model(pipe, "models")
+    # Save the model and register it in the CML Model Registry.
+    mlflow.sklearn.log_model(pipe, "models", registered_model_name="kneighbors-classifier")

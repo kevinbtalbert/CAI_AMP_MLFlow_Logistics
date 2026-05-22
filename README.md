@@ -59,7 +59,8 @@ scripts
 ├── data.py                 # create fake train and test data
 ├── model_api.py            # CML Model entrypoint (predict function)
 ├── train_kneighbors.py     # train a k-nearest neighbors classifier
-└── train_random_forest.py  # train a random forest classifier
+├── train_random_forest.py  # train a random forest classifier
+└── train_sweep.py          # GridSearchCV hyperparameter sweep for either model
 ```
 
 ### app.py
@@ -89,6 +90,9 @@ Inside a CML Python 3 session, simply run
 !pip3 install -r requirements.txt
 ```
 
+> **Note:** Cloudera AI pre-installs MLflow 2.19.0 in all sessions — you do not need to install it separately.
+> The `requirements.txt` pins `mlflow==2.19.0` to ensure consistency between interactive sessions and job/model containers where the pre-installed version may not be available.
+
 In order for Python to pick up the `scripts` directory when running from the command line (see below), we must set an environment variable for the project, setting the `PYTHONPATH` to the root directory of the project.
 Unless you have specifically cloned the project into a different location, this will be `/home/cdsw`.
 See the [instructions for setting project-level environment variables in CML](https://docs.cloudera.com/machine-learning/cloud/engines/topics/ml-environment-variables.html).
@@ -108,6 +112,10 @@ There are two training scripts.
 
 Each script is instrumented with MLflow to log the hyperparameters used and the accuracy of the trained model on a train and test set.
 
+Both training scripts call `mlflow.sklearn.autolog(log_models=False)` before training, which automatically captures all sklearn pipeline hyperparameters and training metrics without explicit `log_param` calls ([Cloudera AI Automatic Logging docs](https://docs.cloudera.com/machine-learning/1.5.5/experiments/topics/ml-exp-v2-auto-logging.html)).
+Test-set accuracy is logged explicitly since autolog only observes the `fit()` call.
+Each run also registers the trained model in the **CML Model Registry** via the `registered_model_name` argument on `log_model()`, creating a new version on every run.
+
 To train the k-nearest neighbors model, start a CML session and run `!python3 scripts/train_kneighbors.py` in the session Python prompt, or without the bang (`!`) in the session terminal.
 This will train the model with the default (5) nearest neighbors.
 To run with a different number of neighbors, pass a command line argument like so:
@@ -123,6 +131,24 @@ This can be done in any of three ways:
 1. By re-running the jobs after changing the default hyperparameter values in the script.
 2. Interactively in a Python session.
 3. At the command line in a session terminal, as described above.
+
+## Hyperparameter sweep
+
+`scripts/train_sweep.py` runs an automated search over a predefined grid of hyperparameter values using sklearn's `GridSearchCV`.
+Instead of training once with fixed values, it tests every combination, picks the best result via k-fold cross-validation, and logs only the winner to MLflow.
+
+Run it from a session terminal:
+
+```bash
+# Sweep KNN (default)
+!python3 scripts/train_sweep.py --model knn --cv 5
+
+# Sweep Random Forest
+!python3 scripts/train_sweep.py --model rf --cv 5
+```
+
+The hyperparameter grids are defined at the top of `train_sweep.py` and are easy to extend.
+After a sweep, the best model is automatically registered in the CML Model Registry under the same name used by the single-run training scripts (`kneighbors-classifier` or `random-forest-classifier`), so the CML Model endpoint will pick it up without any changes.
 
 ## Viewing the MLflow UI
 
@@ -191,14 +217,16 @@ for r in runs:
    | **Runtime** | Python 3.13 / Standard |
    | **Kernel** | Python 3 |
 
-3. Under **Environment Variables**, add:
+3. Under **Environment Variables**, add one of the following to point the API at a model:
 
-   | Variable | Value |
-   |---|---|
-   | `MLFLOW_RUN_ID` | the run ID copied in Step 1 |
-   | `PYTHONPATH` | `/home/cdsw` |
+   | Variable | Value | Priority |
+   |---|---|---|
+   | `MLFLOW_MODEL_NAME` | `kneighbors-classifier` or `random-forest-classifier` | Highest — loads the latest registered version from the CML Model Registry |
+   | `MLFLOW_RUN_ID` | the run ID copied in Step 1 | Used when `MLFLOW_MODEL_NAME` is not set |
+   | `PYTHONPATH` | `/home/cdsw` | Always required |
 
-   If `MLFLOW_RUN_ID` is omitted, the API will automatically load the most recent run.
+   If neither `MLFLOW_MODEL_NAME` nor `MLFLOW_RUN_ID` is set, the API falls back to the most-recent run.
+   Using `MLFLOW_MODEL_NAME` is recommended — it decouples the deployment from a specific run ID and always serves the latest registered version.
 
 4. Click **Deploy Model**.
    CML will run `cdsw-build.sh` to install dependencies and then start the endpoint.

@@ -14,9 +14,13 @@ environment_variables:
     default: ""
     description: "URI of the tracking server. Leave blank to run locally."
     prompt_user: false
+  MLFLOW_MODEL_NAME:
+    default: ""
+    description: "Registered model name in the CML Model Registry to load (e.g. kneighbors-classifier). Takes priority over MLFLOW_RUN_ID."
+    prompt_user: false
   MLFLOW_RUN_ID:
     default: ""
-    description: "MLflow run ID to load for the CML Model endpoint. Leave blank to use the most-recent run."
+    description: "MLflow run ID to load for the CML Model endpoint. Used when MLFLOW_MODEL_NAME is not set. Leave blank to use the most-recent run."
     prompt_user: false
   MLFLOW_SERVER_ALLOWED_HOSTS:
     default: "*"
@@ -85,6 +89,25 @@ tasks:
     short_summary: Train a random forest algorithm.
     long_summary: Training a random forest algorithm for classification on a fake dataset.
     
+  - type: create_job
+    name: Hyperparameter Sweep
+    entity_label: train_sweep
+    script: scripts/train_sweep.py
+    arguments: None
+    cpu: 2
+    memory: 4
+    short_summary: Create a hyperparameter sweep job (GridSearchCV over KNN or Random Forest).
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+
+  - type: run_job
+    entity_label: train_sweep
+    short_summary: Run the hyperparameter sweep.
+    long_summary: >
+      Runs GridSearchCV over a predefined hyperparameter grid for the chosen
+      model family, logs the best params and metrics to MLflow, and registers
+      only the winning model in the CML Model Registry.
+
   - type: start_application
     name: MLFlow UI
     subdomain: mlflow

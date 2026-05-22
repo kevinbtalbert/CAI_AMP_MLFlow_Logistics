@@ -52,12 +52,13 @@ parser.add_argument("--max-depth", type=int, default=3)
 parser.add_argument("--n-estimators", type=int, default=20)
 args, _ = parser.parse_known_args()
 
+mlflow.set_experiment("random-forest-classification")
+
+# Automatically capture hyperparameters and training metrics from the sklearn pipeline.
+# log_models=False keeps our explicit log_model() call below in control of registration.
+mlflow.sklearn.autolog(log_models=False)
 
 with mlflow.start_run():
-
-    # Log hyperparameters for the training run
-
-    mlflow.log_params({"max_depth": args.max_depth, "n_estimators": args.n_estimators})
 
     # Define and train a ML pipeline
 
@@ -70,13 +71,8 @@ with mlflow.start_run():
     pipe = make_pipeline(scaler, rf)
     pipe.fit(X_train, y_train)
 
-    # Log the model performance metrics, and save the serialized model
+    # Log test-set accuracy explicitly — autolog only captures training metrics.
+    mlflow.log_metric("test_accuracy", pipe.score(X_test, y_test))
 
-    mlflow.log_metrics(
-        {
-            "train_accuracy": pipe.score(X_train, y_train),
-            "test_accuracy": pipe.score(X_test, y_test),
-        }
-    )
-
-    mlflow.sklearn.log_model(pipe, "models")
+    # Save the model and register it in the CML Model Registry.
+    mlflow.sklearn.log_model(pipe, "models", registered_model_name="random-forest-classifier")

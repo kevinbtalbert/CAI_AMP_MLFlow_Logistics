@@ -15,9 +15,15 @@ as a CML Model.  It expects a JSON payload with a ``features`` key containing
 a list of 20 numeric values (matching the dataset produced by
 ``scripts/data.py``) and returns the predicted class and class probabilities.
 
-Set the environment variable ``MLFLOW_RUN_ID`` on the model deployment to
-point at a specific training run.  If the variable is not set the API falls
-back to the most-recent run in the default MLflow experiment.
+Environment variables (set on the CML Model deployment)
+--------------------------------------------------------
+``MLFLOW_MODEL_NAME``   Load the latest version of a registered model from the
+                        CML Model Registry (e.g. ``kneighbors-classifier`` or
+                        ``random-forest-classifier``).  Takes priority over
+                        ``MLFLOW_RUN_ID`` when both are set.
+``MLFLOW_RUN_ID``       Load a specific training run artifact.  Used when
+                        ``MLFLOW_MODEL_NAME`` is not set.
+If neither variable is set the API falls back to the most-recent MLflow run.
 
 Example request body
 --------------------
@@ -65,15 +71,28 @@ _run_id: str | None = None
 
 
 def _load_model() -> None:
-    """Load the MLflow sklearn model into the module-level ``_model`` variable."""
+    """Load the MLflow sklearn model into the module-level ``_model`` variable.
+
+    Resolution order:
+    1. ``MLFLOW_MODEL_NAME`` — latest version from the CML Model Registry.
+    2. ``MLFLOW_RUN_ID``     — specific run artifact.
+    3. Fallback              — most-recent run across all experiments.
+    """
     global _model, _run_id
 
-    run_id = os.getenv("MLFLOW_RUN_ID")
+    model_name = os.getenv("MLFLOW_MODEL_NAME", "").strip()
+    run_id = os.getenv("MLFLOW_RUN_ID", "").strip()
 
-    if run_id:
+    if model_name:
+        # Load the latest production-ready version from the CML Model Registry.
+        uri = f"models:/{model_name}/latest"
+        _model = mlflow.sklearn.load_model(uri)
+        _run_id = f"registry:{model_name}@latest"
+    elif run_id:
         _run_id = run_id
+        _model = mlflow.sklearn.load_model(f"runs:/{_run_id}/models")
     else:
-        # Fall back to the most-recent run in the default experiment.
+        # Fall back to the most-recent run across all experiments.
         client = MlflowClient()
         runs = client.search_runs(
             experiment_ids=["0"],
@@ -82,11 +101,11 @@ def _load_model() -> None:
         )
         if not runs:
             raise RuntimeError(
-                "No MLflow runs found. Train a model first, or set MLFLOW_RUN_ID."
+                "No MLflow runs found. Train a model first, or set "
+                "MLFLOW_MODEL_NAME / MLFLOW_RUN_ID."
             )
         _run_id = runs[0].info.run_id
-
-    _model = mlflow.sklearn.load_model(f"runs:/{_run_id}/models")
+        _model = mlflow.sklearn.load_model(f"runs:/{_run_id}/models")
 
 
 # Load on module import — CML initialises the module once before serving requests.
