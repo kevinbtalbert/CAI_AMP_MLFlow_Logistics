@@ -1,0 +1,48 @@
+name: MLflow End-to-End MLOps
+
+entries:
+  - title: MLflow End-to-End MLOps
+    label: mlflow_logistics
+    short_description: |
+      Experiment tracking for scikit-learn classifiers with MLflow, CML Model serving, and a Streamlit demo app.
+    long_description: |
+      This AMP demonstrates end-to-end MLOps using MLflow inside Cloudera Machine Learning (CML).
+      Two scikit-learn classifiers — a k-nearest neighbors model and a random forest — are trained on a
+      synthetic classification dataset and instrumented with MLflow to log hyperparameters, accuracy metrics,
+      and serialized model artifacts.
+
+      After training, any logged run can be deployed as a live REST endpoint using CML Models. A Streamlit
+      application is included to query the deployed endpoint interactively: drop in your model's predict URL
+      and access key as environment variables and start sending predictions from the browser.
+
+      Key capabilities demonstrated:
+      - MLflow experiment tracking (parameters, metrics, and model artifacts)
+      - MLflow UI hosted as a CML Application
+      - CML Model serving with a Python 3.13 scikit-learn pipeline
+      - Streamlit demo app pre-wired to the CML Model via environment variables
+
+      ---------------------------
+      IMPORTANT: Please read the following before proceeding.
+      This AMP includes or otherwise depends on certain third-party software packages.
+      Information about such third-party software packages are made available in the notice file associated with this AMP.
+      By configuring and launching this AMP, you will cause such third-party software packages to be downloaded and installed
+      into your environment, in some instances, from third parties' websites.
+      For each third-party software package, please see the notice file and the applicable websites for more information,
+      including the applicable license terms.
+      If you do not wish to download and install the third-party software packages,
+      do not configure, launch, or otherwise use this AMP.
+      By configuring, launching, or otherwise using the AMP, you acknowledge the foregoing statement and
+      agree that Cloudera is not responsible or liable in any way for the third-party software packages.
+    image_path: "https://raw.githubusercontent.com/kevinbtalbert/CAI_AMP_MLFlow_Logistics/refs/heads/main/docs/images/mlflow-ui.png"
+    tags:
+      - MLflow
+      - Experiment Tracking
+      - scikit-learn
+      - Model Serving
+      - Streamlit
+      - MLOps
+    git_url: "https://github.com/kevinbtalbert/CAI_AMP_MLFlow_Logistics.git"
+    git_ref: "main"
+    is_prototype: true
+    is_community: true
+    is_new: true
