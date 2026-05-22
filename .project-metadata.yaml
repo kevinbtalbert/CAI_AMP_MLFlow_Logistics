@@ -28,7 +28,7 @@ environment_variables:
     prompt_user: true
 
 runtimes:
-  - editor: Workbench
+  - editor: JupyterLab
     kernel: Python 3.13
     edition: Standard
 
