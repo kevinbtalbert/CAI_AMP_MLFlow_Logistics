@@ -149,12 +149,7 @@ with mlflow.start_run(run_name=f"{args.model}-grid-search"):
         "test_accuracy": test_accuracy,
     })
 
-    # Save the best model and register it in the CML Model Registry.
-    # Every sweep creates a new version; the Registry keeps the full history.
-    mlflow.sklearn.log_model(
-        best_estimator,
-        artifact_path="models",
-        registered_model_name=registered_model_name,
-    )
+    # Save the best model as a run artifact.
+    mlflow.sklearn.log_model(best_estimator, artifact_path="models")
 
-    print(f"\nModel registered as '{registered_model_name}' in the CML Model Registry.")
+    print(f"\nRun complete. Model artifact saved. Run ID: {mlflow.active_run().info.run_id}")

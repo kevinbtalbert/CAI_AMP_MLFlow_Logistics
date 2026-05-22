@@ -14,10 +14,6 @@ environment_variables:
     default: ""
     description: "URI of the tracking server. Leave blank to run locally."
     prompt_user: false
-  MLFLOW_MODEL_NAME:
-    default: ""
-    description: "Registered model name in the CML Model Registry to load (e.g. kneighbors-classifier). Takes priority over MLFLOW_RUN_ID."
-    prompt_user: false
   MLFLOW_RUN_ID:
     default: ""
     description: "MLflow run ID to load for the CML Model endpoint. Used when MLFLOW_MODEL_NAME is not set. Leave blank to use the most-recent run."

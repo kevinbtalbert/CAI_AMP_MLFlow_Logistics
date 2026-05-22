@@ -74,5 +74,4 @@ with mlflow.start_run():
     # Log test-set accuracy explicitly — autolog only captures training metrics.
     mlflow.log_metric("test_accuracy", pipe.score(X_test, y_test))
 
-    # Save the model and register it in the CML Model Registry.
-    mlflow.sklearn.log_model(pipe, "models", registered_model_name="random-forest-classifier")
+    mlflow.sklearn.log_model(pipe, "models")

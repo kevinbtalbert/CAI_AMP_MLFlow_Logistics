@@ -90,8 +90,7 @@ Inside a CML Python 3 session, simply run
 !pip3 install -r requirements.txt
 ```
 
-> **Note:** Cloudera AI pre-installs MLflow 2.19.0 in all sessions — you do not need to install it separately.
-> The `requirements.txt` pins `mlflow==2.19.0` to ensure consistency between interactive sessions and job/model containers where the pre-installed version may not be available.
+> **Note:** Cloudera AI pre-installs MLflow 2.19.0 in all sessions — it is not listed in `requirements.txt` and does not need to be installed separately. See the [Cloudera AI experiment tracking docs](https://docs.cloudera.com/machine-learning/1.5.5/experiments/topics/ml-exp-v2-tracking.html) for details.
 
 In order for Python to pick up the `scripts` directory when running from the command line (see below), we must set an environment variable for the project, setting the `PYTHONPATH` to the root directory of the project.
 Unless you have specifically cloned the project into a different location, this will be `/home/cdsw`.
