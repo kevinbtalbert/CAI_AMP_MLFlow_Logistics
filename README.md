@@ -137,8 +137,15 @@ We can now interact with the MLfLow UI as if it were running on our local machin
 You can start the MLflow UI manually inside a session with
 
 ```bash
-!mlflow ui --port $CDSW_READONLY_PORT
+!mlflow ui --port $CDSW_READONLY_PORT --backend-store-uri ${MLFLOW_TRACKING_URI:-mlruns}
 ```
+
+> **Note:** MLflow 3.x defaults to `sqlite:///mlflow.db` when no backend store is specified.
+> Passing `--backend-store-uri mlruns` (or your `MLFLOW_TRACKING_URI`) ensures the UI reads
+> the same file-based tracking store used by the training scripts.
+> Use a session with at least **4 GB of memory** — the MLflow 3.x server uses uvicorn and
+> requires more RAM than older versions. A status 137 exit (OOM kill) is the symptom when
+> the session is under-resourced.
 
 When launched from a session, the UI will be listed in the nine-dot menu in the upper right corner of the session interface.
 Clicking it will open a new browser tab with the UI.

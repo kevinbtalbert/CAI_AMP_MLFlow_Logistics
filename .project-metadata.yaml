@@ -18,14 +18,18 @@ environment_variables:
     default: ""
     description: "MLflow run ID to load for the CML Model endpoint. Leave blank to use the most-recent run."
     prompt_user: false
+  MLFLOW_SERVER_ALLOWED_HOSTS:
+    default: "*"
+    description: "Comma-separated list of allowed Host headers for the MLflow server. * is an acceptable wildcard."
+    prompt_user: false
   CML_MODEL_PREDICT_URL:
-    default: ""
+    default: "tbd"
     description: "Full predict URL of the deployed CML Model (used by the Streamlit demo app)."
-    prompt_user: true
+    prompt_user: false
   CML_MODEL_ACCESS_KEY:
-    default: ""
+    default: "tbd"
     description: "Access key for the deployed CML Model (used by the Streamlit demo app)."
-    prompt_user: true
+    prompt_user: false
 
 runtimes:
   - editor: JupyterLab
@@ -86,6 +90,8 @@ tasks:
     subdomain: mlflow
     script: cml/mlflow_ui.py
     short_summary: Launch the MLFlow UI application
+    cpu: 1
+    memory: 4
     environment_variables:
       TASK_TYPE: START_APPLICATION
 

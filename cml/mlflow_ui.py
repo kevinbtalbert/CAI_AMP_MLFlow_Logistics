@@ -38,4 +38,7 @@
 #
 # ###########################################################################
 
-!mlflow ui --port $CDSW_READONLY_PORT
+# MLflow 3.x defaults to sqlite:///mlflow.db when no backend store is specified.
+# Explicitly point at the mlruns/ file store so runs logged by the training
+# scripts are visible, falling back to mlruns if MLFLOW_TRACKING_URI is unset.
+!mlflow ui --port $CDSW_READONLY_PORT --backend-store-uri ${MLFLOW_TRACKING_URI:-mlruns}
